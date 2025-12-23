@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            artifact: garmin-connect-macos-arm64
+          - os: macos-13
+            artifact: garmin-connect-macos-x64
+          - os: ubuntu-latest
+            artifact: garmin-connect-linux-x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set version
+        run: make set-version VERSION=${{ inputs.version }}
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Build binary
+        run: make build
+
+      - name: Rename binary
+        run: mv dist/garmin-connect dist/${{ matrix.artifact }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          for dir in artifacts/*/; do
+            name=$(basename "$dir")
+            cp "$dir$name" "release/$name"
+            chmod +x "release/$name"
+          done
+          ls -la release/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: garmin-connect-cli v${{ inputs.version }}
+          body: |
+            ## garmin-connect-cli v${{ inputs.version }}
+
+            Garmin Connect from your terminal. Pipe it, script it, automate it.
+
+            ### Installation
+
+            Download the binary for your platform:
+
+            ```bash
+            # macOS (Apple Silicon)
+            curl -L https://github.com/eddmann/garmin-connect-cli/releases/download/v${{ inputs.version }}/garmin-connect-macos-arm64 -o garmin-connect
+            chmod +x garmin-connect
+            sudo mv garmin-connect /usr/local/bin/
+
+            # macOS (Intel)
+            curl -L https://github.com/eddmann/garmin-connect-cli/releases/download/v${{ inputs.version }}/garmin-connect-macos-x64 -o garmin-connect
+            chmod +x garmin-connect
+            sudo mv garmin-connect /usr/local/bin/
+
+            # Linux (x64)
+            curl -L https://github.com/eddmann/garmin-connect-cli/releases/download/v${{ inputs.version }}/garmin-connect-linux-x64 -o garmin-connect
+            chmod +x garmin-connect
+            sudo mv garmin-connect /usr/local/bin/
+            ```
+
+            ### Features
+
+            - Access Garmin Connect data from your terminal
+            - Machine-readable output (JSON, JSONL, CSV, TSV)
+            - Human-friendly table output
+            - Session-based authentication with token persistence
+            - Activities, health metrics, training status, weight tracking
+            - LLM-optimized context aggregation
+
+            ### Requirements
+
+            - Garmin Connect account credentials
+            - Run `garmin-connect auth login` to authenticate
+          files: release/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
