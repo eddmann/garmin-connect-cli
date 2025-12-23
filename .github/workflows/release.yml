@@ -15,7 +15,7 @@ jobs:
         include:
           - os: macos-latest
             artifact: garmin-connect-macos-arm64
-          - os: macos-13
+          - os: macos-15-intel
             artifact: garmin-connect-macos-x64
           - os: ubuntu-latest
             artifact: garmin-connect-linux-x64
