@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Garmin Connect CLI - Your Fitness Data From The Terminal | Command Line Tool</title>
+    <meta name="title" content="Garmin Connect CLI - Your Fitness Data From The Terminal | Command Line Tool">
+    <meta name="description" content="Access your Garmin Connect fitness data from the terminal. Activities, stats, sleep, heart rate, and more. Script it, automate it, pipe it.">
+    <meta name="keywords" content="Garmin CLI, Garmin Connect, fitness data, terminal, command line, activities, heart rate, sleep tracking, fitness automation, Garmin API">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Edd Mann">
+    <meta name="theme-color" content="#06b6d4">
+    <meta name="color-scheme" content="light dark">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://eddmann.com/garmin-connect-cli/">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://eddmann.com/garmin-connect-cli/">
+    <meta property="og:title" content="Garmin Connect CLI - Your Fitness Data From The Terminal">
+    <meta property="og:description" content="Access your Garmin Connect fitness data from the terminal. Activities, stats, sleep, heart rate, and more. Script it, automate it, pipe it.">
+    <meta property="og:image" content="https://eddmann.com/garmin-connect-cli/preview.png">
+    <meta property="og:site_name" content="Garmin Connect CLI">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://eddmann.com/garmin-connect-cli/">
+    <meta property="twitter:title" content="Garmin Connect CLI - Your Fitness Data From The Terminal">
+    <meta property="twitter:description" content="Access your Garmin Connect fitness data from the terminal. Activities, stats, sleep, heart rate, and more. Script it, automate it, pipe it.">
+    <meta property="twitter:image" content="https://eddmann.com/garmin-connect-cli/preview.png">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Garmin Connect CLI",
+        "operatingSystem": "macOS, Linux",
+        "applicationCategory": "DeveloperApplication",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "description": "Access your Garmin Connect fitness data from the terminal. Activities, stats, sleep, heart rate, and more. Script it, automate it, pipe it.",
+        "downloadUrl": "https://github.com/eddmann/garmin-connect-cli/releases/latest",
+        "softwareVersion": "1.0.0",
+        "author": {
+            "@type": "Person",
+            "name": "Edd Mann"
+        },
+        "image": "https://eddmann.com/garmin-connect-cli/logo.png"
+    }
+    </script>
+
+    <!-- Theme flash prevention -->
+    <script>
+        if (localStorage.getItem('theme-preference') === 'dark' ||
+            (!localStorage.getItem('theme-preference') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['DM Sans', 'system-ui', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        'garmin': {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style>
+        * { font-family: 'DM Sans', system-ui, sans-serif; }
+
+        html, body {
+            background: linear-gradient(180deg, #f8fafc 0%, #ecfeff 50%, #f1f5f9 100%);
+            min-height: 100vh;
+        }
+
+        html.dark, html.dark body {
+            background: linear-gradient(180deg, #0f172a 0%, #0c1929 50%, #0f172a 100%);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        html.dark .glass-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+        .glass-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(6, 182, 212, 0.12), 0 8px 16px rgba(0, 0, 0, 0.04);
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(6, 182, 212, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4);
+        }
+
+        .terminal {
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(6, 182, 212, 0.1);
+        }
+        .terminal * {
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+        .terminal-content {
+            min-height: 280px;
+        }
+        .terminal-line {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .terminal-line.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 18px;
+            background: #06b6d4;
+            margin-left: 2px;
+            animation: cursor-blink 1s step-end infinite;
+        }
+        @keyframes cursor-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .install-tabs {
+            display: flex;
+            gap: 0;
+            background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+            border-radius: 20px 20px 0 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .install-tab {
+            flex: 1;
+            min-width: fit-content;
+            white-space: nowrap;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .install-tab:hover {
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .install-tab.active {
+            color: #e2e8f0;
+            background: rgba(6, 182, 212, 0.1);
+        }
+        .install-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #06b6d4;
+        }
+        .install-tab-content {
+            display: none;
+        }
+        .install-tab-content.active {
+            display: flex;
+        }
+        .terminal-header {
+            background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px 20px 0 0;
+        }
+        .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+        .feature-icon {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(8, 145, 178, 0.1) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 16px;
+        }
+
+        .logo-glow {
+            filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.3));
+        }
+
+        /* Fitness pulse animation */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+        .pulse-ring {
+            position: absolute;
+            inset: -8px;
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 50%;
+            animation: pulse-ring 2s ease-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-fade-in-up { opacity: 0; animation: fadeInUp 0.8s ease-out forwards; }
+        .opacity-0-initial { opacity: 0; }
+
+        .stagger-1 { animation-delay: 0.1s !important; }
+        .stagger-2 { animation-delay: 0.2s !important; }
+        .stagger-3 { animation-delay: 0.3s !important; }
+        .stagger-4 { animation-delay: 0.4s !important; }
+        .stagger-5 { animation-delay: 0.5s !important; }
+        .stagger-6 { animation-delay: 0.6s !important; }
+
+        .bg-pattern {
+            background-image: radial-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+        html.dark .bg-pattern {
+            background-image: radial-gradient(rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+        }
+
+        /* Heart rate indicator */
+        .hr-indicator {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 12px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: #0891b2;
+        }
+        html.dark .hr-indicator {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+        }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .heartbeat { animation: heartbeat 1s ease-in-out infinite; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-float, .animate-fade-in-up, [class*="stagger-"], .pulse-ring, .heartbeat {
+                animation: none !important;
+            }
+            .opacity-0-initial { opacity: 1; }
+            .glass-card:hover { transform: none; }
+        }
+
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 dark:text-slate-200 antialiased overflow-x-hidden bg-pattern">
+    <!-- Dark Mode Toggle -->
+    <button class="js-theme-toggle fixed top-6 right-6 z-50 p-3 rounded-2xl bg-white/70 dark:bg-slate-800/70 backdrop-blur-lg border border-gray-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300"
+        aria-label="Toggle dark mode">
+        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+        </svg>
+    </button>
+
+    <!-- Hero Section with Terminal Demo -->
+    <section class="relative min-h-screen flex items-center justify-center px-6 py-20">
+        <div class="max-w-5xl mx-auto text-center">
+            <!-- Logo -->
+            <div class="mb-8 animate-fade-in-up stagger-1">
+                <div class="logo-glow inline-block animate-float">
+                    <div class="w-24 h-24 mx-auto bg-garmin-500 rounded-[28%] flex items-center justify-center shadow-lg">
+                        <svg class="w-16 h-16 text-white" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6.265 12.024a.289.289 0 0 0-.236-.146h-.182a.289.289 0 0 0-.234.146l-1.449 3.025c-.041.079.004.138.094.138h.335c.132 0 .193-.061.228-.134.037-.073.116-.234.13-.266.02-.045.083-.071.175-.071h1.559c.089 0 .148.016.175.071.018.035.098.179.136.256a.24.24 0 0 0 .234.142h.486c.089 0 .13-.069.098-.132-.034-.061-1.549-3.029-1.549-3.029zm-.914 2.224c-.089 0-.132-.067-.094-.148l.571-1.222c.039-.081.1-.081.136 0l.555 1.222c.037.081-.006.148-.096.148H5.351zm12.105-2.201v3.001c0 .083.073.138.163.138h.396c.089 0 .163-.057.163-.146v-2.998c0-.089-.059-.163-.148-.163h-.411c-.09-.001-.163.054-.163.168zm-6.631 1.88c-.051-.073-.022-.154.063-.181 0 0 .342-.102.506-.25.165-.146.246-.36.246-.636a1 1 0 0 0-.096-.457.787.787 0 0 0-.27-.303 1.276 1.276 0 0 0-.423-.171c-.165-.035-.386-.047-.386-.047a8.81 8.81 0 0 0-.325-.008H8.495a.164.164 0 0 0-.163.163v2.998c0 .089.073.146.163.146h.388c.089 0 .163-.057.163-.146v-1.193s.002 0 .002-.002l.738-.002c.089 0 .205.061.258.134l.766 1.077c.071.096.138.132.228.132h.508c.089 0 .104-.085.073-.128-.032-.038-.794-1.126-.794-1.126zm-.311-.61a1.57 1.57 0 0 1-.213.028 8.807 8.807 0 0 1-.325.006h-.763a.164.164 0 0 1-.163-.163v-.608c0-.089.073-.163.163-.163h.762c.089 0 .236.004.325.006 0 0 .114.004.213.028a.629.629 0 0 1 .24.098.358.358 0 0 1 .126.148.473.473 0 0 1 0 .374.352.352 0 0 1-.126.148.617.617 0 0 1-.239.098zm11.803-1.439c-.089 0-.163.059-.163.146v1.919c0 .089-.051.11-.114.047l-1.921-1.992a.376.376 0 0 0-.276-.118h-.362c-.114 0-.163.061-.163.122v3.068c0 .061.059.12.148.12h.362c.089 0 .152-.049.152-.132l.002-2.021c0-.089.051-.11.114-.045l2.004 2.082a.36.36 0 0 0 .279.116h.272a.164.164 0 0 0 .163-.163v-2.986a.164.164 0 0 0-.163-.163h-.334zm-7.835 1.87c-.043.079-.116.077-.159 0l-.939-1.724a.262.262 0 0 0-.236-.146h-.51a.164.164 0 0 0-.163.163v2.996c0 .089.059.15.163.15h.317c.089 0 .154-.057.154-.142 0-.041.002-2.179.004-2.179.004 0 1.173 2.177 1.173 2.177a.105.105 0 0 0 .189 0s1.179-2.173 1.181-2.173c.004 0 .002 2.11.002 2.173 0 .087.069.142.159.142h.364c.089 0 .163-.045.163-.163V12.04a.164.164 0 0 0-.163-.163h-.488a.265.265 0 0 0-.244.142l-.967 1.729zM0 13.529c0 1.616 1.653 1.697 1.984 1.697 1.098 0 1.561-.297 1.58-.309a.29.29 0 0 0 .152-.264v-1.116a.186.186 0 0 0-.187-.187H2.151c-.104 0-.171.083-.171.187v.116c0 .104.067.187.171.187h.797a.14.14 0 0 1 .14.14v.52c-.157.065-.874.274-1.451.136-.836-.199-.901-.89-.901-1.096 0-.173.053-1.043 1.079-1.13.831-.071 1.378.264 1.384.268.098.051.199.014.254-.089l.104-.209c.043-.085.028-.175-.077-.246-.006-.004-.59-.319-1.494-.319C.055 11.813 0 13.354 0 13.529z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Headline -->
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight animate-fade-in-up stagger-2 text-slate-900 dark:text-white">
+                <span class="gradient-text">Garmin</span> From Your Terminal
+            </h1>
+
+            <!-- Tagline -->
+            <p class="text-xl md:text-2xl text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in-up stagger-3 font-mono">
+                Your fitness data, your way.
+            </p>
+
+            <!-- Terminal Demo -->
+            <div class="terminal max-w-3xl mx-auto mb-10 text-left animate-fade-in-up stagger-4">
+                <div class="terminal-header px-4 py-3 flex items-center gap-2">
+                    <div class="terminal-dot bg-red-500"></div>
+                    <div class="terminal-dot bg-yellow-500"></div>
+                    <div class="terminal-dot bg-green-500"></div>
+                    <span class="ml-4 text-sm text-slate-400">garmin-connect-cli</span>
+                </div>
+                <div class="p-6 overflow-x-auto scrollbar-hide terminal-content" id="terminal-demo">
+                    <!-- Content populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 animate-fade-in-up stagger-5">
+                <a href="#installation" class="btn-primary px-8 py-4 text-lg font-semibold text-white inline-flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Install Now
+                </a>
+                <a href="https://github.com/eddmann/garmin-connect-cli" class="px-8 py-4 text-lg font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors inline-flex items-center gap-3 border border-slate-200 dark:border-slate-700 rounded-2xl hover:border-slate-300 dark:hover:border-slate-600 bg-white/50 dark:bg-slate-800/50 backdrop-blur">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    View on GitHub
+                </a>
+            </div>
+
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur border border-slate-200 dark:border-slate-700 text-sm text-slate-500 dark:text-slate-400 animate-fade-in-up stagger-6">
+                <span class="w-2 h-2 bg-garmin-500 rounded-full animate-pulse"></span>
+                <span class="font-medium text-garmin-600 dark:text-garmin-400">AI Agent Ready</span>
+                <span class="text-slate-300 dark:text-slate-600">|</span>
+                <span>Python 3.10+</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="relative px-6 py-24">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-slate-900 dark:text-white">Complete access to your fitness data</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto">Everything Garmin Connect has, at your fingertips.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Feature 1 -->
+                <div class="glass-card p-8 opacity-0-initial stagger-1">
+                    <div class="feature-icon w-14 h-14 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-garmin-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-slate-900 dark:text-white">All Activity Data</h3>
+                    <p class="text-slate-500 dark:text-slate-400 leading-relaxed">Workouts, runs, rides, swims. Splits, laps, heart rate zones, and detailed metrics.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="glass-card p-8 opacity-0-initial stagger-2">
+                    <div class="feature-icon w-14 h-14 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-garmin-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-slate-900 dark:text-white">Daily Health</h3>
+                    <p class="text-slate-500 dark:text-slate-400 leading-relaxed">Sleep quality, body battery, stress levels, steps, and resting heart rate trends.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass-card p-8 opacity-0-initial stagger-3">
+                    <div class="feature-icon w-14 h-14 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-garmin-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-slate-900 dark:text-white">AI Agent Ready</h3>
+                    <p class="text-slate-500 dark:text-slate-400 leading-relaxed">Works with Claude, Cursor, and other AI assistants. Install the skill and let agents track your fitness.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="glass-card p-8 opacity-0-initial stagger-4">
+                    <div class="feature-icon w-14 h-14 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-garmin-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-slate-900 dark:text-white">Training Metrics</h3>
+                    <p class="text-slate-500 dark:text-slate-400 leading-relaxed">VO2 max, HRV status, training readiness, and training load. Track your progress.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="glass-card p-8 opacity-0-initial stagger-5">
+                    <div class="feature-icon w-14 h-14 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-garmin-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-slate-900 dark:text-white">Download & Upload</h3>
+                    <p class="text-slate-500 dark:text-slate-400 leading-relaxed">Export activities as GPX/TCX/FIT. Upload workout files from any source.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="glass-card p-8 opacity-0-initial stagger-6">
+                    <div class="feature-icon w-14 h-14 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-garmin-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-slate-900 dark:text-white">Script & Automate</h3>
+                    <p class="text-slate-500 dark:text-slate-400 leading-relaxed">Composable with jq, pipes, and Unix tools. JSON, CSV, or tables.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section id="installation" class="relative px-6 py-24">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-slate-900 dark:text-white">Get started in seconds</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-lg">Choose your preferred installation method.</p>
+            </div>
+
+            <div class="terminal opacity-0-initial stagger-1">
+                <!-- Tabs -->
+                <div class="install-tabs">
+                    <button class="install-tab active" data-tab="homebrew">Homebrew</button>
+                    <button class="install-tab" data-tab="script">Install Script</button>
+                    <button class="install-tab" data-tab="uv">uv tool</button>
+                    <button class="install-tab" data-tab="skill">Agent Skill</button>
+                </div>
+
+                <!-- Homebrew Content -->
+                <div class="install-tab-content active items-center py-4 pl-4 pr-2 md:pl-6 md:pr-4" data-tab-content="homebrew">
+                    <div class="relative flex-1 overflow-hidden">
+                        <div class="overflow-x-auto scrollbar-hide">
+                            <div class="flex items-center gap-2 md:gap-3 whitespace-nowrap pr-6">
+                                <span class="text-garmin-400 font-medium">$</span>
+                                <code class="text-slate-200 text-sm md:text-lg">brew install eddmann/tap/garmin-connect-cli</code>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="js-copy-command ml-2 p-2 rounded-lg hover:bg-white/10 transition-colors group flex-shrink-0" data-command="brew install eddmann/tap/garmin-connect-cli" title="Copy to clipboard">
+                        <svg class="copy-icon w-5 h-5 text-slate-500 group-hover:text-slate-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <svg class="check-icon w-5 h-5 text-garmin-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Install Script Content -->
+                <div class="install-tab-content items-center py-4 pl-4 pr-2 md:pl-6 md:pr-4" data-tab-content="script">
+                    <div class="relative flex-1 overflow-hidden">
+                        <div class="overflow-x-auto scrollbar-hide">
+                            <div class="flex items-center gap-2 md:gap-3 whitespace-nowrap pr-6">
+                                <span class="text-garmin-400 font-medium">$</span>
+                                <code class="text-slate-200 text-sm md:text-base">curl -fsSL https://raw.githubusercontent.com/eddmann/garmin-connect-cli/main/install.sh | sh</code>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="js-copy-command ml-2 p-2 rounded-lg hover:bg-white/10 transition-colors group flex-shrink-0" data-command="curl -fsSL https://raw.githubusercontent.com/eddmann/garmin-connect-cli/main/install.sh | sh" title="Copy to clipboard">
+                        <svg class="copy-icon w-5 h-5 text-slate-500 group-hover:text-slate-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <svg class="check-icon w-5 h-5 text-garmin-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- uv tool Content -->
+                <div class="install-tab-content items-center py-4 pl-4 pr-2 md:pl-6 md:pr-4" data-tab-content="uv">
+                    <div class="relative flex-1 overflow-hidden">
+                        <div class="overflow-x-auto scrollbar-hide">
+                            <div class="flex items-center gap-2 md:gap-3 whitespace-nowrap pr-6">
+                                <span class="text-garmin-400 font-medium">$</span>
+                                <code class="text-slate-200 text-sm md:text-base">uv tool install git+https://github.com/eddmann/garmin-connect-cli.git</code>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="js-copy-command ml-2 p-2 rounded-lg hover:bg-white/10 transition-colors group flex-shrink-0" data-command="uv tool install git+https://github.com/eddmann/garmin-connect-cli.git" title="Copy to clipboard">
+                        <svg class="copy-icon w-5 h-5 text-slate-500 group-hover:text-slate-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <svg class="check-icon w-5 h-5 text-garmin-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Agent Skill Content -->
+                <div class="install-tab-content items-center py-4 pl-4 pr-2 md:pl-6 md:pr-4" data-tab-content="skill">
+                    <div class="relative flex-1 overflow-hidden">
+                        <div class="overflow-x-auto scrollbar-hide">
+                            <div class="flex items-center gap-2 md:gap-3 whitespace-nowrap pr-6">
+                                <span class="text-garmin-400 font-medium">$</span>
+                                <code class="text-slate-200 text-sm md:text-base">curl -fsSL https://raw.githubusercontent.com/eddmann/garmin-connect-cli/main/install-skill.sh | sh</code>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="js-copy-command ml-2 p-2 rounded-lg hover:bg-white/10 transition-colors group flex-shrink-0" data-command="curl -fsSL https://raw.githubusercontent.com/eddmann/garmin-connect-cli/main/install-skill.sh | sh" title="Copy to clipboard">
+                        <svg class="copy-icon w-5 h-5 text-slate-500 group-hover:text-slate-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <svg class="check-icon w-5 h-5 text-garmin-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-center mt-8 text-slate-400">
+                Or download directly from
+                <a href="https://github.com/eddmann/garmin-connect-cli/releases" class="text-garmin-500 hover:text-garmin-600 underline underline-offset-4 transition-colors">GitHub Releases</a>
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative px-6 py-16 border-t border-slate-200 dark:border-slate-800">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="mb-8 flex items-center justify-center gap-3">
+                <div class="w-10 h-10 bg-garmin-500 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6.265 12.024a.289.289 0 0 0-.236-.146h-.182a.289.289 0 0 0-.234.146l-1.449 3.025c-.041.079.004.138.094.138h.335c.132 0 .193-.061.228-.134.037-.073.116-.234.13-.266.02-.045.083-.071.175-.071h1.559c.089 0 .148.016.175.071.018.035.098.179.136.256a.24.24 0 0 0 .234.142h.486c.089 0 .13-.069.098-.132-.034-.061-1.549-3.029-1.549-3.029zm-.914 2.224c-.089 0-.132-.067-.094-.148l.571-1.222c.039-.081.1-.081.136 0l.555 1.222c.037.081-.006.148-.096.148H5.351zm12.105-2.201v3.001c0 .083.073.138.163.138h.396c.089 0 .163-.057.163-.146v-2.998c0-.089-.059-.163-.148-.163h-.411c-.09-.001-.163.054-.163.168zm-6.631 1.88c-.051-.073-.022-.154.063-.181 0 0 .342-.102.506-.25.165-.146.246-.36.246-.636a1 1 0 0 0-.096-.457.787.787 0 0 0-.27-.303 1.276 1.276 0 0 0-.423-.171c-.165-.035-.386-.047-.386-.047a8.81 8.81 0 0 0-.325-.008H8.495a.164.164 0 0 0-.163.163v2.998c0 .089.073.146.163.146h.388c.089 0 .163-.057.163-.146v-1.193s.002 0 .002-.002l.738-.002c.089 0 .205.061.258.134l.766 1.077c.071.096.138.132.228.132h.508c.089 0 .104-.085.073-.128-.032-.038-.794-1.126-.794-1.126zm-.311-.61a1.57 1.57 0 0 1-.213.028 8.807 8.807 0 0 1-.325.006h-.763a.164.164 0 0 1-.163-.163v-.608c0-.089.073-.163.163-.163h.762c.089 0 .236.004.325.006 0 0 .114.004.213.028a.629.629 0 0 1 .24.098.358.358 0 0 1 .126.148.473.473 0 0 1 0 .374.352.352 0 0 1-.126.148.617.617 0 0 1-.239.098zm11.803-1.439c-.089 0-.163.059-.163.146v1.919c0 .089-.051.11-.114.047l-1.921-1.992a.376.376 0 0 0-.276-.118h-.362c-.114 0-.163.061-.163.122v3.068c0 .061.059.12.148.12h.362c.089 0 .152-.049.152-.132l.002-2.021c0-.089.051-.11.114-.045l2.004 2.082a.36.36 0 0 0 .279.116h.272a.164.164 0 0 0 .163-.163v-2.986a.164.164 0 0 0-.163-.163h-.334zm-7.835 1.87c-.043.079-.116.077-.159 0l-.939-1.724a.262.262 0 0 0-.236-.146h-.51a.164.164 0 0 0-.163.163v2.996c0 .089.059.15.163.15h.317c.089 0 .154-.057.154-.142 0-.041.002-2.179.004-2.179.004 0 1.173 2.177 1.173 2.177a.105.105 0 0 0 .189 0s1.179-2.173 1.181-2.173c.004 0 .002 2.11.002 2.173 0 .087.069.142.159.142h.364c.089 0 .163-.045.163-.163V12.04a.164.164 0 0 0-.163-.163h-.488a.265.265 0 0 0-.244.142l-.967 1.729zM0 13.529c0 1.616 1.653 1.697 1.984 1.697 1.098 0 1.561-.297 1.58-.309a.29.29 0 0 0 .152-.264v-1.116a.186.186 0 0 0-.187-.187H2.151c-.104 0-.171.083-.171.187v.116c0 .104.067.187.171.187h.797a.14.14 0 0 1 .14.14v.52c-.157.065-.874.274-1.451.136-.836-.199-.901-.89-.901-1.096 0-.173.053-1.043 1.079-1.13.831-.071 1.378.264 1.384.268.098.051.199.014.254-.089l.104-.209c.043-.085.028-.175-.077-.246-.006-.004-.59-.319-1.494-.319C.055 11.813 0 13.354 0 13.529z"/>
+                    </svg>
+                </div>
+                <span class="text-2xl font-bold gradient-text">Garmin Connect CLI</span>
+            </div>
+
+            <div class="flex items-center justify-center gap-6 mb-8">
+                <a href="https://github.com/eddmann/garmin-connect-cli" class="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    GitHub
+                </a>
+                <span class="text-slate-300 dark:text-slate-600">|</span>
+                <a href="https://github.com/eddmann/garmin-connect-cli/releases" class="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Releases</a>
+                <span class="text-slate-300 dark:text-slate-600">|</span>
+                <a href="https://github.com/eddmann/garmin-connect-cli/issues" class="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Issues</a>
+            </div>
+
+            <p class="text-slate-400 text-sm">
+                Built by <a href="https://eddmann.com" class="text-garmin-500 hover:text-garmin-600 transition-colors">Edd Mann</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Copy to clipboard
+        document.querySelectorAll('.js-copy-command').forEach(button => {
+            button.addEventListener('click', () => {
+                const text = button.dataset.command;
+                navigator.clipboard.writeText(text);
+                const copyIcon = button.querySelector('.copy-icon');
+                const checkIcon = button.querySelector('.check-icon');
+                copyIcon.classList.add('hidden');
+                checkIcon.classList.remove('hidden');
+                setTimeout(() => {
+                    copyIcon.classList.remove('hidden');
+                    checkIcon.classList.add('hidden');
+                }, 2000);
+            });
+        });
+
+        // Installation tabs
+        document.querySelectorAll('.install-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.install-tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelector(`[data-tab-content="${tabName}"]`).classList.add('active');
+            });
+        });
+
+        // Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.remove('opacity-0-initial');
+                    entry.target.classList.add('animate-fade-in-up');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.opacity-0-initial').forEach(el => observer.observe(el));
+
+        // Animated terminal demo
+        (function() {
+            const TYPING_SPEED = 40;
+            const OUTPUT_DELAY = 300;
+            const PAUSE_BETWEEN_DEMOS = 3000;
+
+            const terminalDemo = document.getElementById('terminal-demo');
+            const demos = [
+                {
+                    command: 'garmin-connect activities list -f human --limit 3',
+                    output: `<span class="text-slate-400">ACTIVITY NAME      START TIME           DISTANCE</span>
+<span class="text-slate-200">Morning Run</span>        <span class="text-slate-300">2024-12-29 07:15</span>     <span class="text-garmin-300">8540.2</span>
+<span class="text-slate-200">Evening Cycle</span>      <span class="text-slate-300">2024-12-28 17:30</span>     <span class="text-garmin-300">45230.0</span>
+<span class="text-slate-200">Strength</span>           <span class="text-slate-300">2024-12-27 06:00</span>     <span class="text-slate-400">-</span>`
+                },
+                {
+                    command: 'garmin-connect health sleep | jq .dailySleepDTO.sleepTimeSeconds',
+                    output: `<span class="text-yellow-400">27120</span>`
+                },
+                {
+                    command: 'garmin-connect athlete stats | jq .totalSteps',
+                    output: `<span class="text-yellow-400">8472</span>`
+                },
+                {
+                    command: 'garmin-connect training readiness | jq .score',
+                    output: `<span class="text-yellow-400">78</span>`
+                }
+            ];
+
+            let currentDemo = 0;
+            let charIndex = 0;
+
+            function typeCommand() {
+                const demo = demos[currentDemo];
+                const commandEl = terminalDemo.querySelector('.command-text');
+
+                if (charIndex < demo.command.length) {
+                    commandEl.textContent = demo.command.substring(0, charIndex + 1);
+                    charIndex++;
+                    setTimeout(typeCommand, TYPING_SPEED);
+                } else {
+                    setTimeout(showOutput, OUTPUT_DELAY);
+                }
+            }
+
+            function showOutput() {
+                const demo = demos[currentDemo];
+                const outputEl = terminalDemo.querySelector('.output-content');
+                outputEl.innerHTML = demo.output;
+                outputEl.classList.add('visible');
+
+                setTimeout(nextDemo, PAUSE_BETWEEN_DEMOS);
+            }
+
+            function nextDemo() {
+                currentDemo = (currentDemo + 1) % demos.length;
+                charIndex = 0;
+                renderTerminal();
+            }
+
+            function renderTerminal() {
+                terminalDemo.innerHTML = `
+                    <div class="space-y-4 text-sm md:text-base">
+                        <div class="flex items-center">
+                            <span class="text-garmin-400">$</span>
+                            <span class="text-slate-300 ml-2 command-text"></span><span class="cursor"></span>
+                        </div>
+                        <pre class="text-slate-400 text-xs md:text-sm leading-relaxed terminal-line output-content"></pre>
+                    </div>
+                `;
+                setTimeout(typeCommand, 500);
+            }
+
+            renderTerminal();
+        })();
+
+        // Theme toggle
+        (function() {
+            const STORAGE_KEY = 'theme-preference';
+
+            function getThemePreference() {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) return stored;
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+
+            function setTheme(theme) {
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+            }
+
+            setTheme(getThemePreference());
+
+            document.querySelector('.js-theme-toggle').addEventListener('click', () => {
+                const current = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                localStorage.setItem(STORAGE_KEY, next);
+                setTheme(next);
+            });
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem(STORAGE_KEY)) {
+                    setTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
