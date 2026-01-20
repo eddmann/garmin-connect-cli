@@ -2,11 +2,6 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version number (e.g., 1.0.0)'
-        required: true
-        type: string
 
 jobs:
   build:
@@ -26,11 +21,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Extract version from changelog
+        id: version
+        run: |
+          VERSION=$(sed -n 's/^## \[\([^]]*\)\].*/\1/p' CHANGELOG.md | head -1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Set up uv
         uses: astral-sh/setup-uv@v4
 
       - name: Set version
-        run: make set-version VERSION=${{ inputs.version }}
+        run: make set-version VERSION=${{ steps.version.outputs.version }}
 
       - name: Install dependencies
         run: make install
@@ -57,6 +58,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Extract changelog
+        id: changelog
+        run: |
+          VERSION=$(sed -n 's/^## \[\([^]]*\)\].*/\1/p' CHANGELOG.md | head -1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          CONTENT=$(awk '
+            /^## \[/ {
+              if (found) exit
+              found=1
+              next
+            }
+            found { print }
+          ' CHANGELOG.md)
+
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -75,47 +95,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ inputs.version }}
-          name: garmin-connect-cli v${{ inputs.version }}
-          body: |
-            ## garmin-connect-cli v${{ inputs.version }}
-
-            Garmin Connect from your terminal. Pipe it, script it, automate it.
-
-            ### Installation
-
-            Download the binary for your platform:
-
-            ```bash
-            # macOS (Apple Silicon)
-            curl -L https://github.com/eddmann/garmin-connect-cli/releases/download/v${{ inputs.version }}/garmin-connect-macos-arm64 -o garmin-connect
-            chmod +x garmin-connect
-            sudo mv garmin-connect /usr/local/bin/
-
-            # macOS (Intel)
-            curl -L https://github.com/eddmann/garmin-connect-cli/releases/download/v${{ inputs.version }}/garmin-connect-macos-x64 -o garmin-connect
-            chmod +x garmin-connect
-            sudo mv garmin-connect /usr/local/bin/
-
-            # Linux (x64)
-            curl -L https://github.com/eddmann/garmin-connect-cli/releases/download/v${{ inputs.version }}/garmin-connect-linux-x64 -o garmin-connect
-            chmod +x garmin-connect
-            sudo mv garmin-connect /usr/local/bin/
-            ```
-
-            ### Features
-
-            - Access Garmin Connect data from your terminal
-            - Machine-readable output (JSON, JSONL, CSV, TSV)
-            - Human-friendly table output
-            - Session-based authentication with token persistence
-            - Activities, health metrics, training status, weight tracking
-            - LLM-optimized context aggregation
-
-            ### Requirements
-
-            - Garmin Connect account credentials
-            - Run `garmin-connect auth login` to authenticate
+          tag_name: v${{ steps.changelog.outputs.version }}
+          name: garmin-connect-cli v${{ steps.changelog.outputs.version }}
+          body: ${{ steps.changelog.outputs.content }}
           files: release/*
           draft: false
           prerelease: false
@@ -133,7 +115,7 @@ jobs:
           cd homebrew-tap
 
           # Update version
-          sed -i "s/version \".*\"/version \"${{ inputs.version }}\"/" Formula/garmin-connect-cli.rb
+          sed -i "s/version \".*\"/version \"${{ steps.changelog.outputs.version }}\"/" Formula/garmin-connect-cli.rb
 
           # Update ARM SHA256 (within on_arm block)
           sed -i "/on_arm/,/end/{s/sha256 \"[a-f0-9]*\"/sha256 \"${SHA_ARM}\"/;}" Formula/garmin-connect-cli.rb
@@ -144,5 +126,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/garmin-connect-cli.rb
-          git commit -m "chore(garmin-connect-cli): update to ${{ inputs.version }}"
+          git commit -m "chore(garmin-connect-cli): update to ${{ steps.changelog.outputs.version }}"
           git push
