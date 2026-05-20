@@ -4,6 +4,9 @@
 
 Garmin Connect from your terminal. Pipe it, script it, automate it.
 
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI](https://img.shields.io/pypi/v/garmin-connect-cli.svg)](https://pypi.org/project/garmin-connect-cli/)
+
 > Exploring CLI tools as skills for AI agents. [Background below](#background).
 
 ## Features
