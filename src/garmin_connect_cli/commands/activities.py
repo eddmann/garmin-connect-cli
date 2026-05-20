@@ -49,7 +49,7 @@ def list_activities(
         garmin-connect activities list --after 2025-01-01 --type running
         garmin-connect activities list | jq '.[].activityName'
     """
-    if after or before:
+    if after or before or activity_type:
         # Use date range query
         end_date = before or date.today().isoformat()
         start_date = after or (date.today() - timedelta(days=365)).isoformat()

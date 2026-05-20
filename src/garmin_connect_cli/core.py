@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 from collections.abc import Callable
 from functools import wraps
-from typing import Any
+from typing import Any, get_type_hints
 
 from garmin_connect_cli.output import OutputFormat
 
@@ -47,8 +47,15 @@ def with_client[R](func: Callable[..., R]) -> Callable[..., R]:
 
     # Typer inspects __signature__ for CLI args - modify to hide 'client' param
     sig = inspect.signature(func)
-    params = list(sig.parameters.values())[1:]  # Skip 'client' param
-    wrapper.__signature__ = sig.replace(parameters=params)  # type: ignore[attr-defined]
+    type_hints = get_type_hints(func, include_extras=True)
+    params = [
+        param.replace(annotation=type_hints.get(param.name, param.annotation))
+        for param in list(sig.parameters.values())[1:]  # Skip 'client' param
+    ]
+    wrapper.__signature__ = sig.replace(  # type: ignore[attr-defined]
+        parameters=params,
+        return_annotation=type_hints.get("return", sig.return_annotation),
+    )
 
     return wrapper
 

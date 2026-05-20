@@ -111,6 +111,23 @@ class TestActivities:
         call_kwargs = mock_garminconnect.get_activities.call_args
         assert call_kwargs.kwargs.get("limit") == 5
 
+    def test_list_with_type_filter(
+        self,
+        cli_runner: CliRunner,
+        authenticated_env: Path,
+        mock_garminconnect: MagicMock,
+    ) -> None:
+        """activities list supports --type filtering."""
+        result = cli_runner.invoke(
+            app,
+            ["activities", "list", "--type", "running"],
+        )
+
+        assert result.exit_code == 0
+        mock_garminconnect.get_activities_by_date.assert_called_once()
+        call_kwargs = mock_garminconnect.get_activities_by_date.call_args
+        assert call_kwargs.kwargs.get("activitytype") == "running"
+
     def test_list_with_format_csv(
         self,
         cli_runner: CliRunner,
