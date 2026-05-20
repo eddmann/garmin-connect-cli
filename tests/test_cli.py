@@ -163,7 +163,7 @@ class TestActivities:
         """activities get --details returns detailed activity data."""
         result = cli_runner.invoke(app, ["activities", "get", "123456789", "--details"])
         assert result.exit_code == 0
-        mock_garminconnect.get_activity_details.assert_called_once_with(123456789)
+        mock_garminconnect.get_activity_details.assert_called_once_with("123456789")
 
     def test_delete_activity_with_confirm(
         self,
@@ -174,7 +174,7 @@ class TestActivities:
         """activities delete requires confirmation."""
         result = cli_runner.invoke(app, ["activities", "delete", "123456789"], input="y\n")
         assert result.exit_code == 0
-        mock_garminconnect.delete_activity.assert_called_once_with(123456789)
+        mock_garminconnect.delete_activity.assert_called_once_with("123456789")
 
 
 class TestAthlete:
@@ -506,9 +506,13 @@ class TestWeight:
         mock_garminconnect: MagicMock,
     ) -> None:
         """weight log adds a weight entry."""
-        result = cli_runner.invoke(app, ["weight", "log", "70.5"])
+        result = cli_runner.invoke(app, ["weight", "log", "70.5", "--date", "2025-01-15"])
         assert result.exit_code == 0
-        mock_garminconnect.add_weigh_in.assert_called_once()
+        mock_garminconnect.add_weigh_in.assert_called_once_with(
+            weight=70.5,
+            unitKey="kg",
+            timestamp="2025-01-15",
+        )
 
     def test_delete_with_confirm(
         self,
@@ -517,9 +521,13 @@ class TestWeight:
         mock_garminconnect: MagicMock,
     ) -> None:
         """weight delete requires confirmation."""
-        result = cli_runner.invoke(app, ["weight", "delete", "12345678"], input="y\n")
+        result = cli_runner.invoke(
+            app,
+            ["weight", "delete", "12345678", "--date", "2025-01-15"],
+            input="y\n",
+        )
         assert result.exit_code == 0
-        mock_garminconnect.delete_weigh_in.assert_called_once_with(12345678)
+        mock_garminconnect.delete_weigh_in.assert_called_once_with("12345678", "2025-01-15")
 
 
 class TestMutationDualOutput:
@@ -579,7 +587,16 @@ class TestMutationDualOutput:
         """delete weight with human format shows human message."""
         result = cli_runner.invoke(
             app,
-            ["--format", "human", "weight", "delete", "12345678", "--force"],
+            [
+                "--format",
+                "human",
+                "weight",
+                "delete",
+                "12345678",
+                "--date",
+                "2025-01-15",
+                "--force",
+            ],
         )
         assert result.exit_code == 0
         assert "deleted" in result.stdout.lower()

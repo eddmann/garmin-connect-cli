@@ -29,7 +29,7 @@ fi
 
 BINARY_NAME="garmin-connect-${OS_NAME}-${ARCH_NAME}"
 
-echo "Installing garmin-connect-cli..."
+echo "Installing garmin-connect..."
 echo "  OS: $OS_NAME"
 echo "  Arch: $ARCH_NAME"
 

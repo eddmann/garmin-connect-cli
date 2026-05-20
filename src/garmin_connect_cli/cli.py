@@ -37,7 +37,7 @@ app = typer.Typer(
 def version_callback(value: bool) -> None:
     """Print version and exit."""
     if value:
-        print(f"garmin-connect-cli {__version__}")
+        print(f"garmin-connect {__version__}")
         raise typer.Exit()
 
 

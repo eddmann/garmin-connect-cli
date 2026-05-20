@@ -115,6 +115,10 @@ def log_weight(
 def delete_weight(
     client: GarminClient,
     pk: Annotated[int, typer.Argument(help="Weight entry primary key to delete")],
+    date_str: Annotated[
+        str,
+        typer.Option("--date", "-d", help="Date of the weight entry (YYYY-MM-DD)"),
+    ],
     force: Annotated[
         bool,
         typer.Option("--force", "-f", help="Skip confirmation prompt"),
@@ -122,19 +126,19 @@ def delete_weight(
 ) -> None:
     """Delete a weight entry.
 
-    Deletes a specific weight entry by its primary key.
+    Deletes a specific weight entry by its primary key and date.
 
     Examples:
-        garmin-connect weight delete 12345678
-        garmin-connect weight delete 12345678 --force
+        garmin-connect weight delete 12345678 --date 2025-01-01
+        garmin-connect weight delete 12345678 --date 2025-01-01 --force
     """
     if not force:
-        confirm = typer.confirm(f"Delete weight entry {pk}?")
+        confirm = typer.confirm(f"Delete weight entry {pk} for {date_str}?")
         if not confirm:
             raise typer.Abort()
 
-    client.delete_weigh_in(pk)
-    emit_result({"pk": pk}, f"Weight entry {pk} deleted")
+    client.delete_weigh_in(pk, date_str)
+    emit_result({"pk": pk, "date": date_str}, f"Weight entry {pk} deleted for {date_str}")
 
 
 @app.command("delete-date")

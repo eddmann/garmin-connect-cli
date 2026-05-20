@@ -162,14 +162,22 @@ def hrv_data(
 
 @app.command("fitness-age")
 @with_client
-def fitness_age(client: GarminClient) -> None:
+def fitness_age(
+    client: GarminClient,
+    date_str: Annotated[
+        str | None,
+        typer.Option("--date", "-d", help="Date for fitness age data (YYYY-MM-DD)"),
+    ] = None,
+) -> None:
     """Get fitness age.
 
     Returns calculated fitness age based on VO2 max and activity.
 
     Examples:
         garmin-connect training fitness-age
+        garmin-connect training fitness-age --date 2025-01-01
         garmin-connect training fitness-age | jq '.fitnessAge'
     """
-    data = client.get_fitnessage_data()
+    target_date = date_str or date.today().isoformat()
+    data = client.get_fitnessage_data(target_date)
     emit(data)

@@ -29,20 +29,23 @@ Downloads the pre-built binary for your platform (macOS/Linux) to `~/.local/bin`
 brew install eddmann/tap/garmin-connect-cli
 ```
 
-### Using uv/pipx
+### Using uv
 
 Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-uv tool install git+https://github.com/eddmann/garmin-connect-cli.git
+uvx garmin-connect-cli --help
+uv tool install garmin-connect-cli
 ```
+
+The PyPI package is `garmin-connect-cli`; the CLI command remains `garmin-connect`.
 
 ### From Source
 
 ```bash
 git clone https://github.com/eddmann/garmin-connect-cli
 cd garmin-connect-cli
-uv sync
+make deps
 uv run garmin-connect --help
 ```
 
@@ -178,7 +181,7 @@ Installs the skill to `~/.claude/skills/garmin-connect/` and `~/.cursor/skills/g
 ```bash
 git clone https://github.com/eddmann/garmin-connect-cli
 cd garmin-connect-cli
-make install                          # Install dependencies
+make deps                             # Install dependencies
 make test                             # Run tests
 make run CMD="activities list --limit 5"  # Run command
 ```

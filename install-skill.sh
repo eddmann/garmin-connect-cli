@@ -4,7 +4,7 @@ set -e
 REPO="eddmann/garmin-connect-cli"
 SKILL_URL="https://raw.githubusercontent.com/${REPO}/main/SKILL.md"
 
-echo "Installing garmin-connect-cli agent skill..."
+echo "Installing garmin-connect agent skill..."
 echo ""
 
 # Install for Claude Code
@@ -29,5 +29,5 @@ echo ""
 echo "The skill will be auto-detected when you ask about Garmin/fitness data."
 echo ""
 echo "Prerequisites:"
-echo "  - garmin-connect-cli must be installed (curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | sh)"
+echo "  - garmin-connect must be installed (curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | sh)"
 echo "  - Run 'garmin-connect auth login' to authenticate"

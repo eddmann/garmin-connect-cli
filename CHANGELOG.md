@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Add PyPI package publishing so the CLI can be run with `uvx garmin-connect-cli`
 - Update Garmin authentication to use the python-garminconnect 0.3 token flow
 - Require Python 3.12+ to match the latest python-garminconnect release
 
@@ -22,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial garmin-connect-cli implementation
+- Initial Garmin Connect CLI implementation
 - Access Garmin Connect data from your terminal
 - Machine-readable output (JSON, JSONL, CSV, TSV)
 - Human-friendly table output

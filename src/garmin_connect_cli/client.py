@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import typer
 from garminconnect import Garmin
@@ -108,7 +108,7 @@ class GarminClient:
             shutil.rmtree(self.token_dir)
 
     # Profile methods
-    def get_full_name(self) -> str:
+    def get_full_name(self) -> str | None:
         """Get user's full name."""
         self.ensure_authenticated()
         return self.client.get_full_name()
@@ -118,7 +118,7 @@ class GarminClient:
         self.ensure_authenticated()
         return self.client.get_user_profile()
 
-    def get_unit_system(self) -> dict[str, Any]:
+    def get_unit_system(self) -> str | None:
         """Get user's unit system preference."""
         self.ensure_authenticated()
         return self.client.get_unit_system()
@@ -135,7 +135,7 @@ class GarminClient:
             List of activity dictionaries
         """
         self.ensure_authenticated()
-        return self.client.get_activities(start=start, limit=limit)
+        return cast(list[dict[str, Any]], self.client.get_activities(start=start, limit=limit))
 
     def get_activities_by_date(
         self,
@@ -163,17 +163,17 @@ class GarminClient:
     def get_activity(self, activity_id: int) -> dict[str, Any]:
         """Get a single activity by ID."""
         self.ensure_authenticated()
-        return self.client.get_activity(activity_id)
+        return self.client.get_activity(str(activity_id))
 
     def get_activity_details(self, activity_id: int) -> dict[str, Any]:
         """Get detailed activity data including metrics."""
         self.ensure_authenticated()
-        return self.client.get_activity_details(activity_id)
+        return self.client.get_activity_details(str(activity_id))
 
     def get_activity_splits(self, activity_id: int) -> dict[str, Any]:
         """Get activity splits/laps."""
         self.ensure_authenticated()
-        return self.client.get_activity_splits(activity_id)
+        return self.client.get_activity_splits(str(activity_id))
 
     def download_activity(self, activity_id: int, dl_fmt: str = "TCX") -> bytes:
         """Download activity in specified format.
@@ -193,7 +193,7 @@ class GarminClient:
             "CSV": Garmin.ActivityDownloadFormat.CSV,
         }
         fmt = fmt_map.get(dl_fmt.upper(), Garmin.ActivityDownloadFormat.TCX)
-        return self.client.download_activity(activity_id, dl_fmt=fmt)
+        return self.client.download_activity(str(activity_id), dl_fmt=fmt)
 
     def upload_activity(self, file_path: str) -> dict[str, Any]:
         """Upload an activity file.
@@ -210,7 +210,7 @@ class GarminClient:
     def delete_activity(self, activity_id: int) -> None:
         """Delete an activity."""
         self.ensure_authenticated()
-        self.client.delete_activity(activity_id)
+        self.client.delete_activity(str(activity_id))
 
     # Stats methods
     def get_stats(self, date_str: str) -> dict[str, Any]:
@@ -284,7 +284,7 @@ class GarminClient:
             Steps data dictionary
         """
         self.ensure_authenticated()
-        return self.client.get_steps_data(date_str)
+        return cast(dict[str, Any], self.client.get_steps_data(date_str))
 
     def get_rhr_day(self, date_str: str) -> dict[str, Any]:
         """Get resting heart rate for a date.
@@ -402,16 +402,19 @@ class GarminClient:
             HRV data
         """
         self.ensure_authenticated()
-        return self.client.get_hrv_data(date_str)
+        return self.client.get_hrv_data(date_str) or {}
 
-    def get_fitnessage_data(self) -> dict[str, Any]:
+    def get_fitnessage_data(self, date_str: str) -> dict[str, Any]:
         """Get fitness age data.
+
+        Args:
+            date_str: Date in YYYY-MM-DD format
 
         Returns:
             Fitness age data
         """
         self.ensure_authenticated()
-        return self.client.get_fitnessage_data()
+        return self.client.get_fitnessage_data(date_str)
 
     # Weight and body composition methods
     def get_weigh_ins(self, start_date: str, end_date: str) -> list[dict[str, Any]]:
@@ -425,7 +428,7 @@ class GarminClient:
             List of weight entries
         """
         self.ensure_authenticated()
-        return self.client.get_weigh_ins(start_date, end_date)
+        return cast(list[dict[str, Any]], self.client.get_weigh_ins(start_date, end_date))
 
     def get_daily_weigh_ins(self, date_str: str) -> dict[str, Any]:
         """Get weight for a specific date.
@@ -465,16 +468,17 @@ class GarminClient:
             Result of the operation
         """
         self.ensure_authenticated()
-        return self.client.add_weigh_in(weight=weight, unitKey=unitKey, date=date)
+        return self.client.add_weigh_in(weight=weight, unitKey=unitKey, timestamp=date or "") or {}
 
-    def delete_weigh_in(self, pk: int) -> None:
+    def delete_weigh_in(self, pk: int, date_str: str) -> None:
         """Delete a weight entry by primary key.
 
         Args:
             pk: Weight entry primary key
+            date_str: Date of the weight entry in YYYY-MM-DD format
         """
         self.ensure_authenticated()
-        self.client.delete_weigh_in(pk)
+        self.client.delete_weigh_in(str(pk), date_str)
 
     def delete_weigh_ins(self, date_str: str) -> None:
         """Delete all weight entries for a date.
@@ -483,7 +487,7 @@ class GarminClient:
             date_str: Date in YYYY-MM-DD format
         """
         self.ensure_authenticated()
-        self.client.delete_weigh_ins(date_str)
+        self.client.delete_weigh_ins(date_str, delete_all=True)
 
 
 def get_client(config: Config | None = None, profile: str | None = None) -> GarminClient:
