@@ -28,7 +28,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.1.0
 
       - name: Set version
         run: make set-version VERSION=${{ steps.version.outputs.version }}
@@ -80,7 +80,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
 
