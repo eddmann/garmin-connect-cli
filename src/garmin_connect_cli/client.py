@@ -38,8 +38,7 @@ class GarminClient:
 
     def is_authenticated(self) -> bool:
         """Check if we have stored tokens."""
-        # Garth stores oauth2_token.json in the token directory
-        token_file = self.token_dir / "oauth2_token.json"
+        token_file = self.token_dir / "garmin_tokens.json"
         return token_file.exists()
 
     def ensure_authenticated(self) -> None:
@@ -84,35 +83,20 @@ class GarminClient:
             self.token_dir.mkdir(parents=True, exist_ok=True)
 
             # Initialize client with credentials
-            self._client = Garmin(email, password)
+            self._client = Garmin(
+                email=email,
+                password=password,
+                prompt_mfa=mfa_callback,
+            )
 
             # Attempt login
             self._client.login()
 
-            # Save tokens using Garth
-            self._client.garth.dump(str(self.token_dir))
+            # Save tokens for future use
+            self._client.client.dump(str(self.token_dir))
             return True
 
         except Exception as e:
-            error_str = str(e).lower()
-
-            # Check for MFA requirement
-            if "mfa" in error_str or "verification" in error_str:
-                if mfa_callback is None:
-                    print("error: MFA required but no callback provided", file=sys.stderr)
-                    return False
-
-                try:
-                    mfa_code = mfa_callback()
-                    # Reinitialize with MFA handling
-                    self._client = Garmin(email, password)
-                    self._client.login(mfa_code)
-                    self._client.garth.dump(str(self.token_dir))
-                    return True
-                except Exception as mfa_e:
-                    print(f"error: MFA authentication failed: {mfa_e}", file=sys.stderr)
-                    return False
-
             print(f"error: Login failed: {e}", file=sys.stderr)
             return False
 

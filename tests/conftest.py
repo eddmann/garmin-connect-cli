@@ -33,9 +33,8 @@ def tmp_token_dir(tmp_config_dir: Path) -> Path:
     token_dir = tmp_config_dir / "tokens"
     token_dir.mkdir(parents=True)
 
-    # Create mock token files that garminconnect/Garth expects
-    (token_dir / "oauth1_token.json").write_text('{"token": "mock_oauth1"}')
-    (token_dir / "oauth2_token.json").write_text('{"token": "mock_oauth2"}')
+    # Create the mock token file that python-garminconnect expects
+    (token_dir / "garmin_tokens.json").write_text('{"di_token": "mock_token"}')
 
     return token_dir
 
@@ -222,9 +221,9 @@ def mock_garminconnect() -> Generator[MagicMock, None, None]:
             "date": "2025-01-15",
         }
 
-        # Mock Garth for token operations
-        mock_client.garth = MagicMock()
-        mock_client.garth.dump = MagicMock()
+        # Mock token operations
+        mock_client.client = MagicMock()
+        mock_client.client.dump = MagicMock()
 
         # Mock ActivityDownloadFormat enum
         mock_garmin_class.ActivityDownloadFormat = MagicMock()

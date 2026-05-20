@@ -4,14 +4,9 @@ from __future__ import annotations
 
 import os
 import stat
-import sys
+import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
 
 
 # XDG Base Directory Specification
@@ -28,7 +23,7 @@ def get_config_path() -> Path:
 
 
 def get_token_dir(profile: str | None = None) -> Path:
-    """Get Garth token directory path.
+    """Get Garmin Connect token directory path.
 
     Tokens are stored in the config directory for XDG compliance.
     For multi-profile support, we use subdirectories.
@@ -64,8 +59,8 @@ class ProfileConfig:
 class Config:
     """Main configuration.
 
-    Note: Auth tokens are managed by Garth and stored in ~/.config/garmin-connect-cli/tokens/.
-    We only store CLI preferences in config.toml.
+    Note: Auth tokens are managed by python-garminconnect and stored in
+    ~/.config/garmin-connect-cli/tokens/. We only store CLI preferences in config.toml.
     """
 
     defaults: DefaultsConfig = field(default_factory=DefaultsConfig)

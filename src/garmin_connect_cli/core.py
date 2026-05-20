@@ -5,11 +5,9 @@ from __future__ import annotations
 import inspect
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, TypeVar
+from typing import Any
 
 from garmin_connect_cli.output import OutputFormat
-
-R = TypeVar("R")
 
 
 class State:
@@ -27,7 +25,7 @@ class State:
 state = State()
 
 
-def with_client(func: Callable[..., R]) -> Callable[..., R]:
+def with_client[R](func: Callable[..., R]) -> Callable[..., R]:
     """Decorator that injects an authenticated GarminClient as first argument.
 
     Usage:

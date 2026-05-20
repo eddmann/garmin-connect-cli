@@ -31,7 +31,7 @@ brew install eddmann/tap/garmin-connect-cli
 
 ### Using uv/pipx
 
-Requires Python 3.10+ and [uv](https://docs.astral.sh/uv/).
+Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv tool install git+https://github.com/eddmann/garmin-connect-cli.git
@@ -136,7 +136,7 @@ limit = 30
 email = "work@example.com"
 ```
 
-Authentication tokens are managed by the [Garth](https://github.com/matin/garth) library and stored in `~/.config/garmin-connect-cli/tokens/`.
+Authentication tokens are managed by [python-garminconnect](https://github.com/cyberjunky/python-garminconnect) and stored in `~/.config/garmin-connect-cli/tokens/`.
 
 ### Environment Variables
 
