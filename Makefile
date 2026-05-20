@@ -61,7 +61,7 @@ format: ## Fix style violations and format code
 ##@ Packaging
 
 set-version: ## Set version (VERSION=x.x.x)
-	@sed -i.bak 's/version = "[^"]*"/version = "$(VERSION)"/' pyproject.toml
+	@sed -i.bak 's/^version = "[^"]*"/version = "$(VERSION)"/' pyproject.toml
 	@sed -i.bak 's/__version__ = "[^"]*"/__version__ = "$(VERSION)"/' src/garmin_connect_cli/__init__.py
 	@rm -f pyproject.toml.bak src/garmin_connect_cli/__init__.py.bak
 
