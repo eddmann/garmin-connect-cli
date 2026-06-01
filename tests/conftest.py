@@ -324,4 +324,41 @@ def mock_garminconnect() -> Generator[MagicMock, None, None]:
         mock_client.delete_weigh_in.return_value = None
         mock_client.delete_weigh_ins.return_value = None
 
+        # Workout mocks
+        mock_client.get_workouts.return_value = [
+            {
+                "workoutId": 111111,
+                "workoutName": "Easy Run",
+                "sportType": {"sportTypeId": 1, "sportTypeKey": "running"},
+            }
+        ]
+        mock_client.get_workout_by_id.return_value = {
+            "workoutId": 111111,
+            "workoutName": "Easy Run",
+            "sportType": {"sportTypeId": 1, "sportTypeKey": "running"},
+            "workoutSegments": [],
+        }
+        mock_client.upload_workout.return_value = {
+            "workoutId": 222222,
+            "workoutName": "New Workout",
+        }
+        mock_client.delete_workout.return_value = None
+        mock_client.schedule_workout.return_value = {
+            "scheduledWorkoutId": 999999,
+            "workoutId": 111111,
+            "date": "2026-06-10",
+        }
+        mock_client.unschedule_workout.return_value = None
+        mock_client.get_scheduled_workouts.return_value = {
+            "calendarItems": [
+                {
+                    "itemId": 999999,
+                    "workoutId": 111111,
+                    "date": "2026-06-10",
+                    "workoutName": "Easy Run",
+                }
+            ]
+        }
+        mock_client.download_workout.return_value = b"\x0eFIT"
+
         yield mock_client

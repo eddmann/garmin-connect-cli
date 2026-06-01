@@ -489,6 +489,47 @@ class GarminClient:
         self.ensure_authenticated()
         self.client.delete_weigh_ins(date_str, delete_all=True)
 
+    # Workout methods
+    def get_workouts(self, start: int = 0, limit: int = 20) -> list[dict[str, Any]]:
+        """Get workout templates."""
+        self.ensure_authenticated()
+        return cast(list[dict[str, Any]], self.client.get_workouts(start=start, limit=limit))
+
+    def get_workout(self, workout_id: str) -> dict[str, Any]:
+        """Get a single workout template by ID."""
+        self.ensure_authenticated()
+        return self.client.get_workout_by_id(workout_id)
+
+    def create_workout(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Create a workout from a JSON payload."""
+        self.ensure_authenticated()
+        return self.client.upload_workout(payload)
+
+    def delete_workout(self, workout_id: str) -> None:
+        """Delete a workout template."""
+        self.ensure_authenticated()
+        self.client.delete_workout(workout_id)
+
+    def schedule_workout(self, workout_id: str, date_str: str) -> dict[str, Any]:
+        """Schedule a workout on a specific date."""
+        self.ensure_authenticated()
+        return self.client.schedule_workout(workout_id, date_str)
+
+    def unschedule_workout(self, scheduled_id: str) -> None:
+        """Remove a workout from the schedule."""
+        self.ensure_authenticated()
+        self.client.unschedule_workout(scheduled_id)
+
+    def get_workout_calendar(self, year: int, month: int) -> dict[str, Any]:
+        """Get scheduled workouts for a given month."""
+        self.ensure_authenticated()
+        return cast(dict[str, Any], self.client.get_scheduled_workouts(year, month))
+
+    def download_workout(self, workout_id: str) -> bytes:
+        """Download workout as FIT file bytes."""
+        self.ensure_authenticated()
+        return self.client.download_workout(workout_id)
+
 
 def get_client(config: Config | None = None, profile: str | None = None) -> GarminClient:
     """Get a configured Garmin client.

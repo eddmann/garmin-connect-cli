@@ -530,6 +530,133 @@ class TestWeight:
         mock_garminconnect.delete_weigh_in.assert_called_once_with("12345678", "2025-01-15")
 
 
+class TestWorkouts:
+    """Tests for workout commands."""
+
+    def test_list_returns_workouts(
+        self,
+        cli_runner: CliRunner,
+        authenticated_env: Path,
+        mock_garminconnect: MagicMock,
+    ) -> None:
+        """workouts list returns workout templates."""
+        result = cli_runner.invoke(app, ["workouts", "list"])
+        assert result.exit_code == 0
+        data = json.loads(result.stdout)
+        assert isinstance(data, list)
+        assert data[0]["workoutId"] == 111111
+
+    def test_list_with_limit(
+        self,
+        cli_runner: CliRunner,
+        authenticated_env: Path,
+        mock_garminconnect: MagicMock,
+    ) -> None:
+        """workouts list --limit passes limit to API."""
+        result = cli_runner.invoke(app, ["workouts", "list", "--limit", "5"])
+        assert result.exit_code == 0
+        mock_garminconnect.get_workouts.assert_called_once_with(start=0, limit=5)
+
+    def test_create_from_file(
+        self,
+        cli_runner: CliRunner,
+        authenticated_env: Path,
+        mock_garminconnect: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        """workouts create reads JSON from a file and posts it."""
+        payload = {"sportType": {"sportTypeId": 1, "sportTypeKey": "running"}, "workoutName": "T"}
+        workout_file = tmp_path / "workout.json"
+        workout_file.write_text(json.dumps(payload))
+
+        result = cli_runner.invoke(app, ["workouts", "create", str(workout_file)])
+        assert result.exit_code == 0
+        mock_garminconnect.upload_workout.assert_called_once_with(payload)
+
+    def test_create_from_stdin(
+        self,
+        cli_runner: CliRunner,
+        authenticated_env: Path,
+        mock_garminconnect: MagicMock,
+    ) -> None:
+        """workouts create - reads JSON from stdin."""
+        payload = {"sportType": {"sportTypeId": 1, "sportTypeKey": "running"}, "workoutName": "S"}
+        result = cli_runner.invoke(app, ["workouts", "create", "-"], input=json.dumps(payload))
+        assert result.exit_code == 0
+        mock_garminconnect.upload_workout.assert_called_once_with(payload)
+
+    def test_create_examples_flag(
+        self,
+        cli_runner: CliRunner,
+        authenticated_env: Path,
+        mock_garminconnect: MagicMock,
+    ) -> None:
+        """workouts create --examples prints JSON examples without calling API."""
+        result = cli_runner.invoke(app, ["workouts", "create", "--examples"])
+        assert result.exit_code == 0
+        assert "easy_run" in result.stdout
+        assert "intervals" in result.stdout
+        assert "hr_zone_run" in result.stdout
+        mock_garminconnect.upload_workout.assert_not_called()
+
+    def test_delete_with_confirmation(
+        self,
+        cli_runner: CliRunner,
+        authenticated_env: Path,
+        mock_garminconnect: MagicMock,
+    ) -> None:
+        """workouts delete requires confirmation."""
+        result = cli_runner.invoke(app, ["workouts", "delete", "111111"], input="y\n")
+        assert result.exit_code == 0
+        mock_garminconnect.delete_workout.assert_called_once_with("111111")
+
+    def test_delete_with_force(
+        self,
+        cli_runner: CliRunner,
+        authenticated_env: Path,
+        mock_garminconnect: MagicMock,
+    ) -> None:
+        """workouts delete --force skips confirmation."""
+        result = cli_runner.invoke(app, ["workouts", "delete", "111111", "--force"])
+        assert result.exit_code == 0
+        mock_garminconnect.delete_workout.assert_called_once_with("111111")
+
+    def test_schedule(
+        self,
+        cli_runner: CliRunner,
+        authenticated_env: Path,
+        mock_garminconnect: MagicMock,
+    ) -> None:
+        """workouts schedule posts workout to a date."""
+        result = cli_runner.invoke(app, ["workouts", "schedule", "111111", "2026-06-10"])
+        assert result.exit_code == 0
+        mock_garminconnect.schedule_workout.assert_called_once_with("111111", "2026-06-10")
+
+    def test_unschedule_with_force(
+        self,
+        cli_runner: CliRunner,
+        authenticated_env: Path,
+        mock_garminconnect: MagicMock,
+    ) -> None:
+        """workouts unschedule --force removes scheduled workout without prompt."""
+        result = cli_runner.invoke(app, ["workouts", "unschedule", "999999", "--force"])
+        assert result.exit_code == 0
+        mock_garminconnect.unschedule_workout.assert_called_once_with("999999")
+
+    def test_calendar(
+        self,
+        cli_runner: CliRunner,
+        authenticated_env: Path,
+        mock_garminconnect: MagicMock,
+    ) -> None:
+        """workouts calendar returns scheduled workouts for a month."""
+        result = cli_runner.invoke(app, ["workouts", "calendar", "--year", "2026", "--month", "6"])
+        assert result.exit_code == 0
+        mock_garminconnect.get_scheduled_workouts.assert_called_once_with(2026, 6)
+        data = json.loads(result.stdout)
+        assert "calendarItems" in data
+
+
 class TestMutationDualOutput:
     """Tests for mutation command dual output (human vs machine formats)."""
 
