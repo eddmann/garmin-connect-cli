@@ -16,6 +16,7 @@ from garmin_connect_cli.commands import (
     health,
     training,
     weight,
+    workouts,
 )
 from garmin_connect_cli.core import state
 from garmin_connect_cli.output import OutputFormat
@@ -134,6 +135,7 @@ app.add_typer(health.app, name="health", help="Health data (sleep, HR, steps, et
 app.add_typer(training.app, name="training", help="Training metrics (status, VO2max, HRV, etc.)")
 app.add_typer(weight.app, name="weight", help="Weight and body composition")
 app.add_typer(context.app, name="context", help="Aggregated context for LLMs")
+app.add_typer(workouts.app, name="workouts", help="Manage workout templates and schedule")
 
 
 def error(message: str, exit_code: int = EXIT_ERROR) -> None:
